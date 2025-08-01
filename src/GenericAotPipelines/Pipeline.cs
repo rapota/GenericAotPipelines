@@ -10,7 +10,13 @@ public class Pipeline<TRequest, TResponse> : IPipeline<TRequest, TResponse>
         _middlewares.Reverse();
     }
 
-    public Task<TResponse> InvokeAsync(IHandler<TRequest, TResponse> handler, TRequest request, CancellationToken token)
+    public async ValueTask<TResponse> InvokeAsync(IHandler<TRequest, TResponse> handler, TRequest request, CancellationToken token)
+    {
+        IChainLink root = BuildChain(handler);
+        return await root.InvokeAsync(request, token);
+    }
+
+    private IChainLink BuildChain(IHandler<TRequest, TResponse> handler)
     {
         IChainLink target = new TargetLink(handler);
         foreach (IMiddleware<TRequest, TResponse> middleware in _middlewares)
@@ -18,18 +24,18 @@ public class Pipeline<TRequest, TResponse> : IPipeline<TRequest, TResponse>
             target = new MiddlewareLink(middleware, target);
         }
 
-        return target.InvokeAsync(request, token);
+        return target;
     }
 
     private interface IChainLink
     {
-        Task<TResponse> InvokeAsync(TRequest request, CancellationToken token);
+        ValueTask<TResponse> InvokeAsync(TRequest request, CancellationToken token);
     }
 
     private sealed class TargetLink(IHandler<TRequest, TResponse> handler)
         : IChainLink
     {
-        public Task<TResponse> InvokeAsync(TRequest request, CancellationToken token) =>
+        public ValueTask<TResponse> InvokeAsync(TRequest request, CancellationToken token) =>
             handler.HandleAsync(request, token);
 
         public override string? ToString() => handler.ToString();
@@ -38,7 +44,7 @@ public class Pipeline<TRequest, TResponse> : IPipeline<TRequest, TResponse>
     private sealed class MiddlewareLink(IMiddleware<TRequest, TResponse> middleware, IChainLink nextLink)
         : IChainLink
     {
-        public Task<TResponse> InvokeAsync(TRequest request, CancellationToken token) =>
+        public ValueTask<TResponse> InvokeAsync(TRequest request, CancellationToken token) =>
             middleware.InvokeAsync(request, nextLink.InvokeAsync, token);
 
         public override string? ToString() => middleware.ToString();
