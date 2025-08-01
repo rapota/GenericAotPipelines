@@ -5,6 +5,6 @@ public class PipelineDecorator<TRequest, TResponse>(
     IHandler<TRequest, TResponse> handler)
     : IHandler<TRequest, TResponse>
 {
-    public Task<TResponse> HandleAsync(TRequest request, CancellationToken ct = default) =>
+    public ValueTask<TResponse> HandleAsync(TRequest request, CancellationToken ct = default) =>
         pipeline.InvokeAsync(handler, request, ct);
 }
