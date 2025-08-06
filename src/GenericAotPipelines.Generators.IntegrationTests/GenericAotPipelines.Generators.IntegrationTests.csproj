@@ -6,19 +6,13 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
 
+    <RootNamespace>Tests.IntegrationTests</RootNamespace>
+
     <!-- Persist the source generator (and other) files to disk -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-
-    <!-- The "base" path for the source generators -->
-    <GeneratedFolder>Generated</GeneratedFolder>
     <!-- Write the output to -->
-    <CompilerGeneratedFilesOutputPath>$(GeneratedFolder)</CompilerGeneratedFilesOutputPath>
+    <CompilerGeneratedFilesOutputPath>..\Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Exclude everything in the base folder -->
-    <Compile Remove="$(GeneratedFolder)/**/*.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4">

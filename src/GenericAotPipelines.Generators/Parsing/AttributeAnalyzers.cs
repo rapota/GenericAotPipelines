@@ -8,7 +8,7 @@ internal static class AttributeAnalyzers
     private const string AttributeNamespace = "GenericAotPipelines";
     private const string AttributeName = "UsePipelineAttribute";
 
-    public static AttributeMetadata? GetAttributeMetadata(INamedTypeSymbol handlerSymbol)
+    public static AttributeMetadata? TryGetAttributeMetadata(INamedTypeSymbol handlerSymbol)
     {
         ImmutableArray<AttributeData> attributes = handlerSymbol.GetAttributes();
         AttributeData? usePipelineAttribute = attributes.FirstOrDefault(IsUsePipelineAttribute);
@@ -17,15 +17,13 @@ internal static class AttributeAnalyzers
             return null;
         }
 
-        ITypeSymbol? piplineTypeSymbol = usePipelineAttribute.AttributeClass?.TypeArguments[0];
-        if (piplineTypeSymbol == null)
+        ITypeSymbol? pipelineTypeSymbol = usePipelineAttribute.AttributeClass?.TypeArguments[0];
+        if (pipelineTypeSymbol == null)
         {
             return null;
         }
 
-        TypeMetadata genericPipelineType = Mappings.ToTypeMetadata(piplineTypeSymbol);
-
-        return new AttributeMetadata(genericPipelineType);
+        return new AttributeMetadata(pipelineTypeSymbol.ToString());
     }
 
     private static bool IsUsePipelineAttribute(AttributeData attributeData)
@@ -38,11 +36,5 @@ internal static class AttributeAnalyzers
 
         return symbol.ContainingNamespace.Name == AttributeNamespace
             && symbol.Name == AttributeName;
-    }
-
-    private static INamedTypeSymbol GetAttributeArgument(AttributeData attribute)
-    {
-        TypedConstant first = attribute.ConstructorArguments.First();
-        return (INamedTypeSymbol)first.Value!;
     }
 }

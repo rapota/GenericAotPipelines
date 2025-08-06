@@ -14,10 +14,10 @@ internal static class DecoratorCodeGeneration
         //source.WriteLine("using System;");
         //source.WriteLine("using System.Threading;");
         //source.WriteLine("using System.Threading.Tasks;");
-        source.WriteLine("using Microsoft.Extensions.DependencyInjection;");        
+        source.WriteLine("using Microsoft.Extensions.DependencyInjection;");
         source.WriteLine();
 
-        source.WriteLine($"namespace {handlerMetadata.HandlerType.Namespace}");
+        source.WriteLine("namespace GenericAotPipelines.Generated.Decorators");
         source.WriteLine("{");
         source.Indent++;
 
@@ -34,72 +34,61 @@ internal static class DecoratorCodeGeneration
 
         source.WriteLine("[global::System.CodeDom.Compiler.GeneratedCode(\"{0}\", \"{1}\")]", className, assemblyVersion);
         source.WriteLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
-        source.WriteLine($"partial class {handlerMetadata.HandlerType.TypeName}");
+        GenerateDecorator(source, handlerMetadata);
+    }
+
+    private static void GenerateDecorator(IndentedTextWriter source, HandlerMetadata handler)
+    {
+        string decoratorName = handler.Type.FullName.Replace('.', '_') + "_Decorator";
+
+        source.WriteLine($"internal sealed class {decoratorName}");
+
+        source.Indent++;
+        source.WriteLine(
+            ": DecoratedRequestHandler<{0}>",
+            Mappings.Format(handler.Interface.RequestResponseTypes));
+        source.WriteLine($", {handler.Interface.Type}");
+        source.Indent--;
+
         source.WriteLine("{");
         source.Indent++;
 
-        string decoratorName = GenerateDecorator(source, handlerMetadata);
+        GenerateConstructor(source, handler, decoratorName);
         source.WriteLine();
-        GenerateRegistrationMethod(source, handlerMetadata, decoratorName);
+        GenerateRegistrationMethod(source, handler, decoratorName);
 
         source.Indent--;
         source.WriteLine("}");
     }
 
-    private static void GenerateRegistrationMethod(IndentedTextWriter source, HandlerMetadata handlerMetadata, string decoratorName)
+    private static void GenerateConstructor(IndentedTextWriter source, HandlerMetadata handler, string decoratorName)
     {
-        source.WriteLine("internal static void RegisterDecoratedHandler(IServiceCollection services)");
+        source.WriteLine($"public {decoratorName}(");
+        source.Indent++;
+
+        source.WriteLine($"{handler.AttributeMetadata.PipelineType} pipeline,");
+
+        source.WriteLine($"{handler.Type.FullName} handler)");
+        source.WriteLine(": base(pipeline, handler)");
+
+        source.Indent--;
+        source.WriteLine("{");
+        source.WriteLine("}");
+    }
+
+    private static void GenerateRegistrationMethod(IndentedTextWriter source, HandlerMetadata handler, string decoratorName)
+    {
+        source.WriteLine("public static void RegisterDecoratedHandler(IServiceCollection services)");
         source.WriteLine("{");
         source.Indent++;
 
         source.WriteLine("services");
         source.Indent++;
-        source.WriteLine($".AddTransient<{handlerMetadata.HandlerType.TypeName}>()");
-        source.WriteLine($".AddTransient<{Mappings.Format(handlerMetadata.InterfaceMetadata.InterfaceType)}, {decoratorName}>();");
+        source.WriteLine($".AddTransient<{handler.Type.FullName}>()");
+        source.WriteLine($".AddTransient<{handler.Interface.Type}, {decoratorName}>();");
         source.Indent--;
-        
-        source.Indent--;
-        source.WriteLine("}");
-    }
-
-    private static string GenerateDecorator(IndentedTextWriter source, HandlerMetadata handlerMetadata)
-    {
-        string decoratorName = handlerMetadata.HandlerType.TypeName + "Decorator";
-
-        source.WriteLine($"private sealed class {decoratorName}");
-
-        source.Indent++;
-        source.WriteLine(
-            ": global::GenericAotPipelines.PipelineDecorator<{0}>",
-            Mappings.Format(handlerMetadata.InterfaceMetadata.RequestResponseTypes));
-        source.WriteLine(
-            ", {0}",
-            Mappings.Format(handlerMetadata.InterfaceMetadata.InterfaceType));
-        source.Indent--;
-
-        source.WriteLine("{");
-        source.Indent++;
-
-        GenerateConstuctor(source, handlerMetadata, decoratorName);
 
         source.Indent--;
         source.WriteLine("}");
-
-        return decoratorName;
-    }
-
-    private static void GenerateConstuctor(IndentedTextWriter source, HandlerMetadata handlerMetadata, string decoratorName)
-    {
-        source.WriteLine($"public {decoratorName}(");
-        source.Indent++;
-
-        source.WriteLine("{0} pipeline,", Mappings.Format(handlerMetadata.AttributeMetadata.PipelineType));
-
-        source.WriteLine($"{handlerMetadata.HandlerType.TypeName} handler)");
-        source.WriteLine(": base(pipeline, handler)");
-
-        source.Indent--;
-        source.WriteLine("{");
-        source.WriteLine("}");        
     }
 }

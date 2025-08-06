@@ -11,45 +11,85 @@ using System.Threading.Tasks;
 
 namespace GenericAotPipelines
 {
-    public interface IHandler<in TRequest, TResponse>
+    public interface IRequestHandler<in TRequest>
+    {
+        ValueTask HandleAsync(TRequest request, CancellationToken ct = default);
+    }
+
+    public interface IRequestHandler<in TRequest, TResponse>
     {
         ValueTask<TResponse> HandleAsync(TRequest request, CancellationToken ct = default);
     }
 
+    
     [AttributeUsage(AttributeTargets.Class)]
-    public class UsePipelineAttribute<TPipelineType> : Attribute;
+    public sealed class UsePipelineAttribute<TPipelineType> : Attribute;
+
+
+    public delegate ValueTask NextVoidMiddlewareDelegate<in TRequest>(TRequest request, CancellationToken ct);
 
     public delegate ValueTask<TResponse> NextMiddlewareDelegate<in TRequest, TResponse>(TRequest request, CancellationToken ct);
+
+    public interface IMiddleware<TRequest>
+    {
+        ValueTask InvokeAsync(TRequest request, NextVoidMiddlewareDelegate<TRequest> next, CancellationToken ct);
+    }
 
     public interface IMiddleware<TRequest, TResponse>
     {
         ValueTask<TResponse> InvokeAsync(TRequest request, NextMiddlewareDelegate<TRequest, TResponse> next, CancellationToken ct);
     }
 
-    public interface IPipeline<TRequest, TResponse>
-    {
-        ValueTask<TResponse> InvokeAsync(IHandler<TRequest, TResponse> handler, TRequest request, CancellationToken token);
-    }
 
-    public class Pipeline<TRequest, TResponse> : IPipeline<TRequest, TResponse>
+    public class Pipeline<TRequest>
     {
-        public Pipeline(params IMiddleware<TRequest, TResponse>[] middlewares)
+        public Pipeline(params IMiddleware<TRequest>[] middlewares)
         {
         }
 
-        public async ValueTask<TResponse> InvokeAsync(IHandler<TRequest, TResponse> handler, TRequest request, CancellationToken token)
+        public IRequestHandler<TRequest> DecorateHandler(IRequestHandler<TRequest> requestHandler)
         {
             throw new NotImplementedException();
         }
     }
 
-    public class PipelineDecorator<TRequest, TResponse>(
-        IPipeline<TRequest, TResponse> pipeline,
-        IHandler<TRequest, TResponse> handler)
-        : IHandler<TRequest, TResponse>
+    public class Pipeline<TRequest, TResponse>
     {
+        public Pipeline(params IMiddleware<TRequest, TResponse>[] middlewares)
+        {
+        }
+
+        public IRequestHandler<TRequest, TResponse> DecorateHandler(IRequestHandler<TRequest, TResponse> requestHandler)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
+    public class DecoratedRequestHandler<TRequest> : IRequestHandler<TRequest>
+    {
+        private readonly IRequestHandler<TRequest> _requestHandler;
+
+        public DecoratedRequestHandler(Pipeline<TRequest> pipeline, IRequestHandler<TRequest> requestHandler)
+        {
+            _requestHandler = pipeline.DecorateHandler(requestHandler);
+        }
+
+        public ValueTask HandleAsync(TRequest request, CancellationToken ct = default) =>
+            _requestHandler.HandleAsync(request, ct);
+    }
+
+    public class DecoratedRequestHandler<TRequest, TResponse> : IRequestHandler<TRequest, TResponse>
+    {
+        private readonly IRequestHandler<TRequest, TResponse> _requestHandler;
+
+        public DecoratedRequestHandler(Pipeline<TRequest, TResponse> pipeline, IRequestHandler<TRequest, TResponse> requestHandler)
+        {
+            _requestHandler = pipeline.DecorateHandler(requestHandler);
+        }
+
         public ValueTask<TResponse> HandleAsync(TRequest request, CancellationToken ct = default) =>
-            pipeline.InvokeAsync(handler, request, ct);
+            _requestHandler.HandleAsync(request, ct);
     }
 }
 """;

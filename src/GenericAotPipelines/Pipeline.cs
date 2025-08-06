@@ -1,6 +1,51 @@
 ﻿namespace GenericAotPipelines;
 
-public class Pipeline<TRequest, TResponse> : IPipeline<TRequest, TResponse>
+public class Pipeline<TRequest>
+{
+    private readonly List<IMiddleware<TRequest>> _middlewares;
+
+    public Pipeline(params IMiddleware<TRequest>[] middlewares)
+    {
+        _middlewares = middlewares.ToList();
+        _middlewares.Reverse();
+    }
+
+    public IRequestHandler<TRequest> DecorateHandler(IRequestHandler<TRequest> requestHandler)
+    {
+        if (_middlewares.Count == 0)
+        {
+            return requestHandler;
+        }
+
+        IChainLink target = new TargetLink(requestHandler);
+        foreach (IMiddleware<TRequest> middleware in _middlewares)
+        {
+            target = new MiddlewareLink(middleware, target);
+        }
+
+        return target;
+    }
+
+    private interface IChainLink : IRequestHandler<TRequest>;
+
+    private sealed class TargetLink(IRequestHandler<TRequest> requestHandler) : IChainLink
+    {
+        public ValueTask HandleAsync(TRequest request, CancellationToken token) =>
+            requestHandler.HandleAsync(request, token);
+
+        public override string? ToString() => requestHandler.ToString();
+    }
+
+    private sealed class MiddlewareLink(IMiddleware<TRequest> middleware, IChainLink nextLink) : IChainLink
+    {
+        public ValueTask HandleAsync(TRequest request, CancellationToken token) =>
+            middleware.InvokeAsync(request, nextLink.HandleAsync, token);
+
+        public override string? ToString() => middleware.ToString();
+    }
+}
+
+public class Pipeline<TRequest, TResponse>
 {
     private readonly List<IMiddleware<TRequest, TResponse>> _middlewares;
 
@@ -10,15 +55,14 @@ public class Pipeline<TRequest, TResponse> : IPipeline<TRequest, TResponse>
         _middlewares.Reverse();
     }
 
-    public async ValueTask<TResponse> InvokeAsync(IHandler<TRequest, TResponse> handler, TRequest request, CancellationToken token)
+    public IRequestHandler<TRequest, TResponse> DecorateHandler(IRequestHandler<TRequest, TResponse> requestHandler)
     {
-        IChainLink root = BuildChain(handler);
-        return await root.InvokeAsync(request, token);
-    }
+        if (_middlewares.Count == 0)
+        {
+            return requestHandler;
+        }
 
-    private IChainLink BuildChain(IHandler<TRequest, TResponse> handler)
-    {
-        IChainLink target = new TargetLink(handler);
+        IChainLink target = new TargetLink(requestHandler);
         foreach (IMiddleware<TRequest, TResponse> middleware in _middlewares)
         {
             target = new MiddlewareLink(middleware, target);
@@ -27,25 +71,20 @@ public class Pipeline<TRequest, TResponse> : IPipeline<TRequest, TResponse>
         return target;
     }
 
-    private interface IChainLink
+    private interface IChainLink : IRequestHandler<TRequest, TResponse>;
+
+    private sealed class TargetLink(IRequestHandler<TRequest, TResponse> requestHandler) : IChainLink
     {
-        ValueTask<TResponse> InvokeAsync(TRequest request, CancellationToken token);
+        public ValueTask<TResponse> HandleAsync(TRequest request, CancellationToken token) =>
+            requestHandler.HandleAsync(request, token);
+
+        public override string? ToString() => requestHandler.ToString();
     }
 
-    private sealed class TargetLink(IHandler<TRequest, TResponse> handler)
-        : IChainLink
+    private sealed class MiddlewareLink(IMiddleware<TRequest, TResponse> middleware, IChainLink nextLink) : IChainLink
     {
-        public ValueTask<TResponse> InvokeAsync(TRequest request, CancellationToken token) =>
-            handler.HandleAsync(request, token);
-
-        public override string? ToString() => handler.ToString();
-    }
-
-    private sealed class MiddlewareLink(IMiddleware<TRequest, TResponse> middleware, IChainLink nextLink)
-        : IChainLink
-    {
-        public ValueTask<TResponse> InvokeAsync(TRequest request, CancellationToken token) =>
-            middleware.InvokeAsync(request, nextLink.InvokeAsync, token);
+        public ValueTask<TResponse> HandleAsync(TRequest request, CancellationToken token) =>
+            middleware.InvokeAsync(request, nextLink.HandleAsync, token);
 
         public override string? ToString() => middleware.ToString();
     }

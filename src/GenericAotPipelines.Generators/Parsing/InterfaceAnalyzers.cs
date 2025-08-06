@@ -6,7 +6,7 @@ namespace GenericAotPipelines.Generators.Parsing;
 internal static class InterfaceAnalyzers
 {
     private const string HandlerInterfaceNamespace = "GenericAotPipelines";
-    private const string HandlerInterfaceName = "IHandler";
+    private const string HandlerInterfaceName = "IRequestHandler";
 
     public static InterfaceMetadata? TryGetInterfaceMetadata(INamedTypeSymbol handlerSymbol)
     {
@@ -16,7 +16,7 @@ internal static class InterfaceAnalyzers
             if (requestResponseTypes != null)
             {
                 return new InterfaceMetadata(
-                    Mappings.ToNamedTypeMetadata(interfaceSymbol),
+                    interfaceSymbol.ToString(),
                     (RequestResponseMetadata)requestResponseTypes);
             }
         }
@@ -36,14 +36,18 @@ internal static class InterfaceAnalyzers
         }
 
         ImmutableArray<ITypeSymbol> arguments = interfaceSymbol.TypeArguments;
-        if (arguments.Length != 2)
+        if (arguments.Length < 1)
         {
             return null;
         }
 
-        return new RequestResponseMetadata(
-            Mappings.ToTypeMetadata(arguments[0]),
-            Mappings.ToTypeMetadata(arguments[1]));
+        return arguments.Length == 1
+            ? new RequestResponseMetadata(
+                arguments[0].ToString(),
+                null)
+            : new RequestResponseMetadata(
+                arguments[0].ToString(),
+                arguments[1].ToString());
     }
 
     private static RequestResponseMetadata? TryGetRequestResponseTypesRecursive(INamedTypeSymbol interfaceSymbol)

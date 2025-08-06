@@ -1,4 +1,4 @@
 ﻿namespace GenericAotPipelines;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class UsePipelineAttribute<TPipelineType> : Attribute;
+public sealed class UsePipelineAttribute<TPipelineType> : Attribute;

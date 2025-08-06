@@ -1,11 +1,11 @@
 ﻿namespace GenericAotPipelines.Generators;
 
-internal record struct HandlerMetadata(TypeMetadata HandlerType, InterfaceMetadata InterfaceMetadata, AttributeMetadata AttributeMetadata);
+internal record struct HandlerMetadata(TypeMetadata Type, InterfaceMetadata Interface, AttributeMetadata AttributeMetadata);
 
-internal record struct AttributeMetadata(TypeMetadata PipelineType);
+internal record struct AttributeMetadata(string PipelineType);
 
-internal record struct TypeMetadata(string TypeName, string Namespace, string FullName);
+internal record struct TypeMetadata(string Name, string FullName);
 
-internal record struct InterfaceMetadata(TypeMetadata InterfaceType, RequestResponseMetadata RequestResponseTypes);
+internal record struct InterfaceMetadata(string Type, RequestResponseMetadata RequestResponseTypes);
 
-internal record struct RequestResponseMetadata(TypeMetadata RequestType, TypeMetadata ResponseType);
+internal record struct RequestResponseMetadata(string RequestType, string? ResponseType);

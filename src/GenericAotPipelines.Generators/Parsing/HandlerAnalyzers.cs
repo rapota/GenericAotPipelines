@@ -12,7 +12,7 @@ internal static class HandlerAnalyzers
             return null;
         }
 
-        AttributeMetadata? attributeMetadata = AttributeAnalyzers.GetAttributeMetadata(handlerSymbol);
+        AttributeMetadata? attributeMetadata = AttributeAnalyzers.TryGetAttributeMetadata(handlerSymbol);
         if (attributeMetadata == null)
         {
             return null;
