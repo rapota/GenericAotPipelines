@@ -3,25 +3,31 @@
 #pragma warning disable
 #nullable enable
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace ExamplePipelines.Handlers
+namespace GenericAotPipelines.Generators.IntegrationTests
 {
     [global::System.CodeDom.Compiler.GeneratedCode("GenericAotPipelines.Generators.DecoratorGenerator", "1.0.0.0")]
     [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     partial class GetByIdRequestHandler
     {
         private sealed class GetByIdRequestHandlerDecorator
-            : global::GenericAotPipelines.PipelineDecorator<ExamplePipelines.Handlers.GetByIdRequest, ExamplePipelines.Handlers.Todo>
-            , ExamplePipelines.Handlers.IGetByIdRequestHandler
+            : global::GenericAotPipelines.PipelineDecorator<GenericAotPipelines.Generators.IntegrationTests.GetByIdRequest, GenericAotPipelines.Generators.IntegrationTests.Todo>
+            , GenericAotPipelines.Generators.IntegrationTests.IGetByIdRequestHandler
         {
             public GetByIdRequestHandlerDecorator(
-                GenericAotPipelines.Generators.IntegrationTests.DefaultPipeline<ExamplePipelines.Handlers.GetByIdRequest, ExamplePipelines.Handlers.Todo> pipeline,
+                GenericAotPipelines.Generators.IntegrationTests.DefaultPipeline<GenericAotPipelines.Generators.IntegrationTests.GetByIdRequest, GenericAotPipelines.Generators.IntegrationTests.Todo> pipeline,
                 GetByIdRequestHandler handler)
                 : base(pipeline, handler)
-            {}
+            {
+            }
+        }
+        
+        internal static void RegisterDecoratedHandler(IServiceCollection services)
+        {
+            services
+                .AddTransient<GetByIdRequestHandler>()
+                .AddTransient<GenericAotPipelines.Generators.IntegrationTests.IGetByIdRequestHandler, GetByIdRequestHandlerDecorator>();
         }
     }
 }

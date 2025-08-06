@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace GenericAotPipelines.Generators;
+namespace GenericAotPipelines.Generators.Parsing;
 
 internal static class InterfaceAnalyzers
 {

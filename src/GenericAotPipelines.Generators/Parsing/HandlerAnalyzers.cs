@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
-using System.Reflection.Metadata;
 
-namespace GenericAotPipelines.Generators;
+namespace GenericAotPipelines.Generators.Parsing;
 
 internal static class HandlerAnalyzers
 {
