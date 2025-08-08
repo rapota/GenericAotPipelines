@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAotPipelines.Generat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAotPipelines.Generators.IntegrationTests", "GenericAotPipelines.Generators.IntegrationTests\GenericAotPipelines.Generators.IntegrationTests.csproj", "{EC99EA64-E3B6-4D5E-88E5-62050955DD20}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericAotPipelines.Contracts", "GenericAotPipelines.Contracts\GenericAotPipelines.Contracts.csproj", "{894F5715-7C30-4314-851B-668C5273E554}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{EC99EA64-E3B6-4D5E-88E5-62050955DD20}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC99EA64-E3B6-4D5E-88E5-62050955DD20}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC99EA64-E3B6-4D5E-88E5-62050955DD20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{894F5715-7C30-4314-851B-668C5273E554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{894F5715-7C30-4314-851B-668C5273E554}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{894F5715-7C30-4314-851B-668C5273E554}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{894F5715-7C30-4314-851B-668C5273E554}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
